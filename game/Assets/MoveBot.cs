@@ -23,6 +23,7 @@ public class MoveBot : MonoBehaviour {
     void Start()
     {
         velocityVector = new Vector3();
+        rb = GetComponent<Rigidbody2D>();
     }
 
     // Update is called once per frame
@@ -30,7 +31,7 @@ public class MoveBot : MonoBehaviour {
     {
         hMove = Input.GetAxisRaw("Horizontal");
         vMove = Input.GetAxisRaw("Vertical");
-        angle = transform.Rotate;
+        angle = transform.rotation.eulerAngles.z;
     }
 
 
@@ -44,30 +45,31 @@ public class MoveBot : MonoBehaviour {
                 velocity += acceleration;
                 velocity = Clamp(velocity, 0, velocitCap);
             }
-            velocityVector = Vector3(velocity*Math.Cos(toRadians(angle)), velocity*Math.Sin(toRadians(angle)), 0);
+            velocityVector = new Vector3(velocity*Mathf.Cos(toRadians(angle)), velocity*Mathf.Sin(toRadians(angle)), 0);
 
         } else if (vMove<0) {
             if (goingForward) {
                 velocity -= slowdown;
-                velocity = Clamp(velocity, 0, velocitCap);
+                velocity = Clamp(velocity, 0f, velocitCap);
                 if (velocity == 0) goingForward = false;
             } else {
                 velocity += acceleration;
-                velocity = Clamp(velocity, 0, velocitCap);
-                velocityVector = Vector3(-velocity*Math.Cos(toRadians(angle)), -velocity*Math.Sin(toRadians(angle)), 0);
+                velocity = Clamp(velocity, 0f, velocitCap);
+                velocityVector = new Vector3(-velocity*Mathf.Cos(toRadians(angle)), -velocity*Mathf.Sin(toRadians(angle)), 0);
             }
 
         } else {
             velocity -= slowdown;
             velocity = Clamp(velocity, 0, velocitCap);
             if (velocity == 0) goingForward = false;
+            velocityVector = new Vector3(velocity * Mathf.Cos(toRadians(angle)), velocity * Mathf.Sin(toRadians(angle)), 0);
         }
 
-
+        rb.velocity = new Vector2(velocityVector.x, velocityVector.y);
 
     }
 
-    private float Clamp(float num, flaot min, float max)
+    private float Clamp(float num, float min, float max)
     {
         if (num > max) return max;
         else if (num < min) return min;
@@ -75,7 +77,7 @@ public class MoveBot : MonoBehaviour {
     }
 
     private float toRadians(float num) {
-        return num*Math.PI/180;
+        return num*Mathf.PI/180;
     }
 
     private void Rotate() // uses horizontal input
