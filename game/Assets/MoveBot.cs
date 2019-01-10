@@ -9,8 +9,6 @@ public class MoveBot : MonoBehaviour {
     [SerializeField] private float slowdown = 1.5f; // I refuse to call it "deceleration"
     [SerializeField] private float velocitCap = 3f;
 
-
-
     private Rigidbody2D rb;
 
     private float hMove;
@@ -18,6 +16,7 @@ public class MoveBot : MonoBehaviour {
     private Vector3 velocityVector;
     private float velocity;
     private float angle = 0f;
+    private bool goingForward = false;
 
 
     // Start is called before the first frame update
@@ -31,31 +30,59 @@ public class MoveBot : MonoBehaviour {
     {
         hMove = Input.GetAxisRaw("Horizontal");
         vMove = Input.GetAxisRaw("Vertical");
+        angle = transform.Rotate;
     }
+
 
     // currently only doing WestCoast Drive
 
     private void Move() // uses vertical input
     {
-        if (velocity<velocitCap)
-        {
-            velocity += acceleration;
-            velocity = Clamp(velocity, velocitCap);
+        if (vMove>0) {
+            goingForward = true;
+            if (velocity<velocitCap) {
+                velocity += acceleration;
+                velocity = Clamp(velocity, 0, velocitCap);
+            }
+            velocityVector = Vector3(velocity*Math.Cos(toRadians(angle)), velocity*Math.Sin(toRadians(angle)), 0);
+
+        } else if (vMove<0) {
+            if (goingForward) {
+                velocity -= slowdown;
+                velocity = Clamp(velocity, 0, velocitCap);
+                if (velocity == 0) goingForward = false;
+            } else {
+                velocity += acceleration;
+                velocity = Clamp(velocity, 0, velocitCap);
+                velocityVector = Vector3(-velocity*Math.Cos(toRadians(angle)), -velocity*Math.Sin(toRadians(angle)), 0);
+            }
+
+        } else {
+            velocity -= slowdown;
+            velocity = Clamp(velocity, 0, velocitCap);
+            if (velocity == 0) goingForward = false;
         }
+
 
 
     }
 
-    private float Clamp(float num, float max)
+    private float Clamp(float num, flaot min, float max)
     {
         if (num > max) return max;
+        else if (num < min) return min;
         return num;
+    }
+
+    private float toRadians(float num) {
+        return num*Math.PI/180;
     }
 
     private void Rotate() // uses horizontal input
     {
         if (hMove>0)
         {
+            // Vector3.forward = (0, 0, 1)
             transform.Rotate(Vector3.forward * -deltaAngle);
         }
         else if (hMove<0)
@@ -64,6 +91,7 @@ public class MoveBot : MonoBehaviour {
         }
     }
 
+    // Called less frequently than Update()
     private void FixedUpdate()
     {
         Rotate();
